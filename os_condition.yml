@@ -1,0 +1,88 @@
+---
+- hosts: slave
+  become: yes
+  vars:
+    package:
+      - git
+      - maven
+      - tree
+    debian_dest: /home/ubuntu/reju
+    centos_dest: /home/centos/reju 
+    new_file: test
+    file_to_copy: os_condition.yml
+    src_path: /home/ubuntu/
+
+  tasks:
+      - name: Install in remote ubuntu machine
+        apt:
+          name: "{{ item }}"
+          state: present
+          update_cache: yes
+        loop: "{{ package }}"
+        when: ansible_os_family == "Debian"
+
+      - name: create a directory in ubuntu machine
+        file:
+          path: "{{debian_dest}}"
+          state: directory
+        when: ansible_os_family == "Debian"
+
+      - name: create a file in ubuntu machine
+        file:
+          path: "{{debian_dest}}/{{new_file}}"
+          state: touch
+        when: ansible_os_family == "Debian"
+
+      - name: copy file from source to destination in ubuntu machine
+        copy:
+          src: "{{src_path}}/{{file_to_copy}}"
+          dest: "{{debian_dest}}"
+        when: ansible_os_family == "Debian"
+
+      - name: remove package from ubuntu machine
+        apt:
+          name: "{{ item }}"
+          state: absent
+        loop: "{{ package }}"
+        when: ansible_os_family == "Debian"
+
+      - name: Install in remote centos machine
+        yum:
+          name: "{{ item }}"
+          state: present
+        loop: "{{ package }}"
+        when: ansible_os_family == "RedHat"
+
+      - name: create a directory in centos machine
+        file:
+          path: "{{centos_dest}}"
+          state: directory
+        when: ansible_os_family == "RedHat"
+
+      - name: create a file in centos machine
+        file:
+          path: "{{centos_dest}}/{{new_file}}"
+          state: touch
+        when: ansible_os_family == "RedHat"
+
+      - name: copy file from source to destination in centos machine
+        copy:
+          src: "{{src_path}}/{{file_to_copy}}"
+          dest: "{{centos_dest}}"
+        when: ansible_os_family == "RedHat"
+
+      - name: remove package in centos machine
+        yum:
+          name: "{{ item }}"
+          state: absent
+        loop: "{{ package }}"
+        when: ansible_os_family == "RedHat"
+
+      - name: printing the values
+        debug:
+          msg: "{{ item }}"
+        with_items:
+          - "{{ ansible_distribution }}"
+          - "{{ ansible_distribution_version }}"
+          - "{{ ansible_distribution_major_version }}"
+          - "{{ ansible_os_family }}"

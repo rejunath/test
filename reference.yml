@@ -1,0 +1,6 @@
+package: [git,maven,tree]
+debian_dest: /home/ubuntu/reju
+centos_dest: /home/centos/reju 
+new_file: test
+file_to_copy: os_condition.yml
+src_path: /home/ubuntu/

@@ -1,0 +1,32 @@
+- hosts: localhost
+  gather_facts: False
+  vars:
+   - machinename:
+      - { name : 'ansibleredhat' , id : 'ami-0521a1ab6cb98215d' }
+      - { name : 'ansibleubuntu' , id : 'ami-00eeedc4036573771' }
+
+  tasks:
+    - name: create a key-pair
+      ec2_key:
+        name: sample
+        region: us-east-2
+      register: keyout
+
+    - name: save key
+      copy:
+        content: "{{keyout.key.private_key}}"
+        dest: ./sample.pem
+      when: keyout.changed == True
+
+    - name: create ec2 instance
+      ec2_instance:
+        key_name: sample
+        name: "{{item.name}}"
+        instance_type: t2.micro
+        image_id: "{{item.id}}"
+        region: us-east-2
+        wait: yes
+        exact_count: 1
+        network:
+          assign_public_ip: yes
+      with_items: "{{machinename}}"
